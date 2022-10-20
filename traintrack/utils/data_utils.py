@@ -7,7 +7,7 @@ from more_itertools import collapse
 
 import torch
 import pytorch_lightning as pl
-from pytorch_lightning.loggers import WandbLogger, TensorBoardLogger
+from pytorch_lightning.loggers import WandbLogger, TensorBoardLogger, CMFLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 
 from simple_slurm import Slurm

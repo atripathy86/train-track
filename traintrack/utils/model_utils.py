@@ -7,7 +7,7 @@ from more_itertools import collapse
 
 import torch
 import pytorch_lightning as pl
-from pytorch_lightning.loggers import WandbLogger, TensorBoardLogger
+from pytorch_lightning.loggers import WandbLogger, TensorBoardLogger, CMFLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 import wandb
 
@@ -77,6 +77,16 @@ def get_logger(model_config):  # M
             name=model_config["project"],
             save_dir=model_config["artifact_library"],
             version=model_config["resume_id"],
+        )
+    
+    elif logger_choice == "cmf":
+        logger = CMFLogger(
+            mlmd_filename=model_config["artifact_library"]+"/"+model_config["project"]+"_mlmd",
+            pipeline_name=model_config["project"],
+            pipeline_stage=model_config["set"],
+            execution_type=model_config["set"],
+            #save_dir=model_config["artifact_library"],
+            #version=model_config["resume_id"],
         )
 
     elif logger_choice == None:
