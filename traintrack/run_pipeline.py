@@ -94,6 +94,22 @@ def train_stage(model, model_config):
     # Run training, unless in inference mode
     if not model_config["inference"]:
         trainer.fit(model)
+        #print("project_config[libraries][model_library]" + project_config["libraries"]["model_library"])
+        # print("the rest of the path should be: lightning_logs/version_{version number}/epoch_{epoch number}-step_{global_step}.ckpt")
+        # print("version_number",trainer.logger.version)
+        # print("epoch_number",trainer.current_epoch)
+        # print("global_step",trainer.global_step)
+        # logging.info("model_config: {}".format(model_config))
+        print("Best Model Path=" + str(trainer.checkpoint_callback.best_model_path))
+
+        #IF CMF, Log Model
+        if (model_config["logger"] == "cmf"):
+            logger._logger.log_model(path=trainer.checkpoint_callback.best_model_path, 
+            event="output", 
+            model_framework="PyTorchLightning", 
+            model_type=model_config["set"],
+            model_name=model_config["name"])
+
     else:
         # Run testing and, if requested, inference callbacks to continue the pipeline
         if model_config["checkpoint_path"]:
@@ -104,9 +120,34 @@ def train_stage(model, model_config):
             
     trainer.test(model)
 
+    #IF CMF, Log Model
+    if (model_config["logger"] == "cmf"):
+        logger._logger.log_model(path=trainer.checkpoint_callback.best_model_path, 
+        event="input", 
+        model_framework="PyTorchLightning", 
+        model_type=model_config["set"],
+        model_name=model_config["name"])
+
+    #If it is Inference, save the model output
+
+    if (model_config["logger"] == "cmf"):
+        logger._logger.log_dataset(model_config["output_dir"],"output") #TODO: custom_properties={"TBD":"TBD"}
+
+
 def data_stage(model, model_config):
     logging.info("Preparing data")
+    
+    #CMF is able to log input and output datasets
+    if (model_config["logger"] == "cmf"):
+        logger = get_logger(model_config)
+        logger._logger.log_dataset(model_config["input_dir"], "input") #TODO: custom_properties={"TBD":"TBD"}
+        
+
     model.prepare_data()
+
+    #The outputdir needs to exist before CMF is able to log it
+    if (model_config["logger"] == "cmf"):
+        logger._logger.log_dataset(model_config["output_dir"],"output") #TODO: custom_properties={"TBD":"TBD"}
 
 
 def start(args):

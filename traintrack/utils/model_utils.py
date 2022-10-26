@@ -80,6 +80,7 @@ def get_logger(model_config):  # M
         )
     
     elif logger_choice == "cmf":
+        #print(model_config["artifact_library"]+"/"+model_config["project"]+"_mlmd")
         logger = CMFLogger(
             mlmd_filename=model_config["artifact_library"]+"/"+model_config["project"]+"_mlmd",
             pipeline_name=model_config["project"],
@@ -124,7 +125,9 @@ def build_trainer(model_config, logger):  # M
         monitor=fom, save_top_k=2, save_last=True, mode=fom_mode
     )
 
+
     gpus = 1 if torch.cuda.is_available() else 0
+    #gpus = 4
 
     # Handle resume condition
     if model_config["resume_id"] is None:
@@ -134,6 +137,10 @@ def build_trainer(model_config, logger):  # M
             gpus=gpus,
             logger=logger,
             callbacks=callback_objects(model_config)+[checkpoint_callback],
+            # strategy="ddp",
+            # accelerator="gpu",
+            # devices=1,
+            # num_nodes=gpus,
         )
     else:
         num_sanity = model_config["sanity_steps"] if "sanity_steps" in model_config else 2
@@ -145,6 +152,10 @@ def build_trainer(model_config, logger):  # M
             num_sanity_val_steps=num_sanity,
             logger=logger,
             callbacks=callback_objects(model_config)+[checkpoint_callback],
+            # strategy="ddp",
+            # accelerator="gpu",
+            # devices=1,
+            # num_nodes=gpus,
         )
 
     logging.info("Trainer built")
