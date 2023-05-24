@@ -91,8 +91,20 @@ def train_stage(model, model_config):
     # Load the trainer, handling any resume conditions
     trainer = build_trainer(model_config, logger)
 
+    print ("My Rank is:"+ os.getenv("PMI_RANK"))
+      
+
     # Run training, unless in inference mode
     if not model_config["inference"]:
+
+        #If CMF: Log the input data used for training
+        #TODO: Enable these once dataset size issue is figured out
+        #if (model_config["logger"] == "cmf"):
+            #logger._logger.log_dataset(model_config["input_dir"], "input") #TODO: custom_properties={"TBD":"TBD"}
+            #This is included temporarily since dvc add times out at 60s. We are manually adding the hash key for CMF to be able to log the dataset
+            #logger._logger.log_dataset_with_version(model_config["input_dir"], "98d958f867e170ab8e1a34c76b2957e3.dir", "input") #TODO: custom_properties={"TBD":"TBD"}
+
+
         trainer.fit(model)
         #print("project_config[libraries][model_library]" + project_config["libraries"]["model_library"])
         # print("the rest of the path should be: lightning_logs/version_{version number}/epoch_{epoch number}-step_{global_step}.ckpt")
@@ -140,7 +152,9 @@ def data_stage(model, model_config):
     #CMF is able to log input and output datasets
     if (model_config["logger"] == "cmf"):
         logger = get_logger(model_config)
-        logger._logger.log_dataset(model_config["input_dir"], "input") #TODO: custom_properties={"TBD":"TBD"}
+        #logger._logger.log_dataset(model_config["input_dir"], "input") #TODO: custom_properties={"TBD":"TBD"}
+        #This is included temporarily since dvc add times out at 60s. We are manually adding the hash key for CMF to be able to log the dataset
+        logger._logger.log_dataset_with_version(model_config["input_dir"], "98d958f867e170ab8e1a34c76b2957e3.dir", "input") #TODO: custom_properties={"TBD":"TBD"}
         
 
     model.prepare_data()

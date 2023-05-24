@@ -120,27 +120,30 @@ def build_trainer(model_config, logger):  # M
 
     fom = model_config["fom"] if "fom" in model_config.keys() else "val_loss"
     fom_mode = model_config["fom_mode"] if "fom_mode" in model_config.keys() else "min"
+
+    print ("Before Initializing Trainer ....... ")
     
     checkpoint_callback = ModelCheckpoint(
         monitor=fom, save_top_k=2, save_last=True, mode=fom_mode
     )
 
 
-    gpus = 1 if torch.cuda.is_available() else 0
-    #gpus = 4
+    #gpus = 1 if torch.cuda.is_available() else 0
+    gpus = 1
+    num_nodes = 2
 
     # Handle resume condition
     if model_config["resume_id"] is None:
         # The simple case: We start fresh
         trainer = pl.Trainer(
             max_epochs=model_config["max_epochs"],
-            gpus=gpus,
+            #gpus=gpus,
             logger=logger,
             callbacks=callback_objects(model_config)+[checkpoint_callback],
-            # strategy="ddp",
-            # accelerator="gpu",
-            # devices=1,
-            # num_nodes=gpus,
+            strategy="ddp",
+            accelerator="gpu",
+            devices=gpus,
+            num_nodes=num_nodes,
         )
     else:
         num_sanity = model_config["sanity_steps"] if "sanity_steps" in model_config else 2
@@ -148,17 +151,18 @@ def build_trainer(model_config, logger):  # M
         trainer = pl.Trainer(
             resume_from_checkpoint=model_config["checkpoint_path"],
             max_epochs=model_config["max_epochs"],
-            gpus=gpus,
+            #gpus=gpus,
             num_sanity_val_steps=num_sanity,
             logger=logger,
             callbacks=callback_objects(model_config)+[checkpoint_callback],
-            # strategy="ddp",
-            # accelerator="gpu",
-            # devices=1,
-            # num_nodes=gpus,
+            strategy="ddp",
+            accelerator="gpu",
+            devices=gpus,
+            num_nodes=num_nodes,
         )
 
     logging.info("Trainer built")
+    print ("After Initializing Trainer ....... ")
     return trainer
 
 

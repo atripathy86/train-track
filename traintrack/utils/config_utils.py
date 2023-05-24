@@ -50,7 +50,7 @@ def submit_batch(config, project_config, running_id=None):  # C
 
     # Run the slurm submission command
     slurm_command = (
-        "\n".join(custom_batch_setup) + """\n ttbatch """ + command_line_args
+        "\n".join(custom_batch_setup) + """\n srun ttbatch """ + command_line_args
     )
 
     # If there are setup commands to run before the batch submission, prepend them here
@@ -62,7 +62,8 @@ def submit_batch(config, project_config, running_id=None):  # C
         slurm_setup = ";".join(project_config["command_line_setup"] + ["sbatch"])
     else:
         slurm_setup = "sbatch"
-
+    
+    print("Before issued slurm.sbatch")
     logging.info(slurm_command)
     job_id = slurm.sbatch(slurm_command, sbatch_cmd=slurm_setup, shell="/bin/bash")
     print("Job ID: {}".format(job_id))
